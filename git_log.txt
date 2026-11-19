@@ -1,0 +1,86 @@
+commit 013a191cc817c464bec444033e4ef6d1f15f1239
+Author: Mpho Hadebe <mphohadebe.s7@gmail.com>
+Date:   Sun Aug 16 19:15:50 2026 +0200
+
+    compiled and completed the report for submission
+
+commit 09a6cfaaed8cae7ec648f143d695d36e7cfb1c30
+Author: Mpho Hadebe <mphohadebe.s7@gmail.com>
+Date:   Sat Aug 15 02:51:14 2026 +0200
+
+    Benchmarking round: cutoff, grid size, and parallelism level data + graphs
+    
+    - Swept sequential cutoff (500-150000) on 500x500 wildfire, confirmed
+      80000 as a strong default (near-fastest, flat region of the curve)
+    - Swept grid sizes (250/500/750/1000) for both serial and parallel on
+      laptop, correctness confirmed at every size (matching timesteps and
+      cells burned between versions)
+    - Ran the same grid sizes on the department server, found heavy
+      contention (load average ~30 on 8 cores) which explains slower
+      and less consistent results there - noted for the report
+    - Swept ForkJoinPool parallelism level (1/2/4/6/8) at cutoff=80000,
+      showed clear diminishing returns above 4 cores
+    
+    Added Python scripts (not part of the submission, just for
+    generating report data/graphs):
+    - sweep_parallelism.py, plot_parallelism.py, plot_cutoff.py,
+      plot_speedup.py - read CSV results and produce report graphs
+    
+    All correctness checks still hold: parallel output matches serial
+    exactly (timesteps, cells burned, peak temperature, byte-identical
+    images) across every cutoff and grid size tested so far.
+
+commit c4d9b953a29a5b110e24e9648086b1af7e335f4e
+Author: Mpho Hadebe <mphohadebe.s7@gmail.com>
+Date:   Tue Aug 11 23:44:34 2026 +0200
+
+    Set default sequential cutoff to 75000 based on sweep results
+    
+    Tested cutoffs from 100 to 100000 on the 500x500 wildfire mixed
+    case (seed 17, matching the required make run command). Small
+    cutoffs (100-5000) were clearly slower due to task overhead.
+    Times flattened out between roughly 40000-100000, with 75000
+    giving the fastest single result (9122.23 ms vs serial's
+    16450.567 ms - about 1.8x speedup).
+    
+    Verified output still matches serial exactly at this cutoff:
+    same timesteps completed (4528) and cells burned (121632).
+
+commit 7b8acd590ee0eb7c8858631d2b78fe3308b0d6be
+Author: Mpho Hadebe <mphohadebe.s7@gmail.com>
+Date:   Tue Aug 11 14:13:49 2026 +0200
+
+    Add FireTask.java for fork/join, fix bugs in FireMapParallel.java
+    
+    FireTask splits the grid region recursively until it hits the
+    sequential cutoff, then calls updateRegion() directly. Forks one
+    half, computes the other itself, joins and combines results.
+    
+    Also fixed a missing 'new' before FireTask(...) and added the
+    shutdown() method that was missing in FireMapParallel.java. Compiles
+    and runs now, tested against serial on 200x200 - same output, same
+    images.
+
+commit f6555e99e3eb162578365864bfd8fe8cbf4f85e6
+Author: Mpho Hadebe <mphohadebe.s7@gmail.com>
+Date:   Mon Aug 10 23:19:39 2026 +0200
+
+    Copy FireMap to FireMapParallel, just renamed class/constructors so far
+
+commit 9c28b2260e2b81213ef9d0bdd3520bf2742d33bb
+Author: Mpho Hadebe <mphohadebe.s7@gmail.com>
+Date:   Mon Aug 10 23:06:21 2026 +0200
+
+    Add FirelineParallel.java: CLI entry point adapted from FirelineSerial, constructs FireMapParallel and shuts down the ForkJoinPool on exit
+
+commit 141f3b518c0060aa139ab83d31703a72266eba9a
+Author: Mpho Hadebe <mphohadebe.s7@gmail.com>
+Date:   Mon Aug 10 16:10:57 2026 +0200
+
+    edited the makefile to satisfy the parallel version
+
+commit b0d5c63973d26ae3ca90ea595db8f69f12d8bb6c
+Author: Mpho Hadebe <mphohadebe.s7@gmail.com>
+Date:   Mon Aug 10 15:41:13 2026 +0200
+
+    Initial assignment structure: Copied Makefile and TerrainType.java from the serial part
